@@ -4,16 +4,23 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://blog:blog123@localhost:5432/blogdb?schema=public"
+  url      = "postgresql://root:mytest069@localhost:5432/blogdb?schema=public"
 }
 
 model User {
   id        String   @id @default(uuid())
-  email     String   @unique
+  username  String   @unique 
   password  String
-  name      String?
+  email     String?
+  phone     String?  
+  nickname  String   
+  avatar    String?  @default("default.png")
+  createdAt DateTime @default(now()) @map("created_at")
+  birthday  DateTime? // 类型调整为DateTime
+  location  String?
   posts     Post[]
-  createdAt DateTime @default(now())
+  
+  @@map("users") // 显式映射表名
 }
 
 model Post {
@@ -21,7 +28,14 @@ model Post {
   title     String
   content   String
   published Boolean  @default(false)
+  views     Int      @default(0)    
+  likes     Int      @default(0)    
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at") 
+  category  String?
+  tags      String[]
   author    User     @relation(fields: [authorId], references: [id])
   authorId  String
-  createdAt DateTime @default(now())
+  
+  @@map("posts") // 显式映射表名
 }

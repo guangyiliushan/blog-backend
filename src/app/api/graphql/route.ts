@@ -5,6 +5,9 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import * as argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 
+import { NextApiRequest, NextApiResponse } from 'next';
+import Cors from 'cors';
+
 const prisma = new PrismaClient();
 
 const typeDefs = `#graphql
@@ -99,4 +102,27 @@ const server = new ApolloServer({
   }
 });
 
-export default startServerAndCreateNextHandler(server);
+// 初始化CORS中间件
+const cors = Cors({
+  origin: ['http://localhost:5173'],
+  methods: ['POST', 'OPTIONS'],
+  credentials: true
+});
+
+// 添加CORS中间件处理
+const runMiddleware = (req: NextApiRequest, res: NextApiResponse) => {
+  return new Promise((resolve, reject) => {
+    cors(req, res, (result: any) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
+    });
+  });
+};
+
+// 修改导出部分
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  await runMiddleware(req, res);
+  return startServerAndCreateNextHandler(server)(req, res);
+}
